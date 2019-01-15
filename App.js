@@ -1,16 +1,29 @@
 import React, {Component} from 'react';
 import {createStackNavigator, createAppContainer} from 'react-navigation';
-import { Alert, Button, Picker, SectionList, StyleSheet, Text, View } from 'react-native';
+import { Alert, Button, Picker, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import {homepage, transaction} from './example_api_results.js'
+
+console.log(Object.keys(homepage["unclaimed"]))
 // fetch('https://riley_server.com/mydata.json')
 class HomeScreen extends React.Component {
     render() {
         const {navigate} = this.props.navigation;
+        const unclaimedList = [];
+        // for loop for each category, for each transaction
+        for (let i=0; i<2; i++) {
+            // sort by date, organize for sectionlist
+            //console.log(homepage.unclaimed[i].txnid)
+            //console.log(homepage.unclaimed[i].merchant)
+            item = homepage.unclaimed[i];
+            unclaimedList.push(item.date + ' ' + item.merchant + ' ' + item.payment)
+        }
+        //homepage["unclaimed"]
         return (
             <View style={styles.container}>
                 <SectionList
                     sections={[
-                        {title: 'Unclaimed', data: ['Purchase1']},
+                        {title: 'Unclaimed', data: unclaimedList},
                         {title: 'Joint', data: ['Purchase2']},
                         {title: 'Personal', data: ['underwear']},
                     ]}
@@ -21,7 +34,8 @@ class HomeScreen extends React.Component {
                     )}
                     renderItem = { ({item}) => <Text
                         style = {styles.item}
-                        onPress = { () => navigate('Details', {name: item} )} > {item} </Text>}
+                        onPress = { () => navigate('Details', {name: item} )} > {item}
+                      </Text>}
                     keyExtractor = {(item, index) => index}
                 />
             </View>
@@ -30,7 +44,10 @@ class HomeScreen extends React.Component {
 }
 
 class DetailsScreen extends React.Component {
-    state = {budget: '', budgetval: '', category: '', categoryval: ''}
+    state = {budget: '', budgetval: '',
+             category: '', categoryval: '',
+             payer: '', payerval: '',
+             text: 'Notes: '}
     updateBudget = (label, value) => {
         if (value !== 0) {
             this.setState({budget:label})
@@ -39,6 +56,11 @@ class DetailsScreen extends React.Component {
     updateCategory = (label, value) => {
         if (value !== 0) {
             this.setState({category:label})
+        }
+    }
+    updatePayer = (label, value) => {
+        if (value !== 0) {
+            this.setState({payer:label})
         }
     }
     render() {
@@ -67,6 +89,18 @@ class DetailsScreen extends React.Component {
                     <Picker.Item label="Misc" value="misc" />
                     <Picker.Item label="Charity" value="charity" />
                 </Picker>
+                <Picker
+                    selectedValue={this.state.payer}
+                    style={{ height: 50, width: 250 }}
+                    onValueChange={this.updatePayer}>
+                    <Picker.Item label="Please select who paid" value="0" />
+                    <Picker.Item label="Riley" value="riley" />
+                    <Picker.Item label="Vivian" value="vivian" />
+                </Picker>
+                <TextInput
+                    onChangeText={(text) => this.setState({text})}
+                    value = {this.state.text}
+                />
             </View>
         );
     }
