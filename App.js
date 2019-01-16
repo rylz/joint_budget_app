@@ -1,43 +1,87 @@
 import React, {Component} from 'react';
 import {createStackNavigator, createAppContainer} from 'react-navigation';
 import { Alert, Button, Picker, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
+
 
 import {homepage, transaction} from './example_api_results.js'
 
-console.log(Object.keys(homepage["unclaimed"]))
+const MERCHANT_CHAR_LIM = 15
+
 // fetch('https://riley_server.com/mydata.json')
 class HomeScreen extends React.Component {
+    state = {
+        unclaimedHead: ['Unclaimed'],
+        unclaimedTable: [],
+        jointHead: ['Joint'],
+        jointTable: [],
+        personalHead: ['Personal'],
+        personalTable: []
+    }
     render() {
+        //const { data, style, widthArr, heightArr, flexArr, textStyle, ...props } = this.props;
+        //const flex = flexArr ? sum(flexArr) : 0;
+        //const width = widthArr ? sum(widthArr) : 0;
+        const state = this.state;
         const {navigate} = this.props.navigation;
-        const unclaimedList = [];
         // for loop for each category, for each transaction
         for (let i=0; i<2; i++) {
-            // sort by date, organize for sectionlist
-            //console.log(homepage.unclaimed[i].txnid)
-            //console.log(homepage.unclaimed[i].merchant)
-            item = homepage.unclaimed[i];
-            unclaimedList.push(item.date + ' ' + item.merchant + ' ' + item.payment)
+            // TODO: sort by date (moment.js), adjust table column size
+            if (homepage.unclaimed.length !== 0) {
+                item = homepage.unclaimed[i];
+                state.unclaimedTable.push([item.date, item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
+            }
         }
-        //homepage["unclaimed"]
+        for (let i=0; i<2; i++) {
+            if (homepage.joint.length !== 0) {
+                item = homepage.joint[i];
+                state.jointTable.push([item.date, item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
+            }
+        }
+        for (let i=0; i<2; i++) {
+            if (homepage.personal.length !== 0) {
+              item = homepage.personal[i];
+              state.personalTable.push([item.date, item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
+            }
+        }
         return (
-            <View style={styles.container}>
-                <SectionList
-                    sections={[
-                        {title: 'Unclaimed', data: unclaimedList},
-                        {title: 'Joint', data: ['Purchase2']},
-                        {title: 'Personal', data: ['underwear']},
-                    ]}
-                    renderSectionHeader={ ({section}) => (
-                        <Text style={styles.sectionHeader}>
-                            {section.title}
-                        </Text>
-                    )}
-                    renderItem = { ({item}) => <Text
-                        style = {styles.item}
-                        onPress = { () => navigate('Details', {name: item} )} > {item}
-                      </Text>}
-                    keyExtractor = {(item, index) => index}
-                />
+              <View style={styles.container}>
+                  <Table borderStyle = { {borderWidth: 2, borderColor: 'transparent'} }>
+                      <Row  data={state.unclaimedHead} style={styles.head} textStyle={styles.headtext}/>
+                      {state.unclaimedTable.map( (item, i) => {
+                         return (
+                             <Row
+                                 key={i}
+                                 data={item}
+                                 textStyle={styles.text}
+                                 onPress = { () => navigate('Details', {info: homepage.unclaimed[i]} ) } />
+                         );
+                      })}
+                  </Table>
+                  <Table borderStyle = { {borderWidth: 2, borderColor: 'transparent'} }>
+                      <Row  data={state.jointHead} style={styles.head} textStyle={styles.headtext}/>
+                      {state.jointTable.map( (item, i) => {
+                         return (
+                             <Row
+                                 key={i}
+                                 data={item}
+                                 textStyle={styles.text}
+                                 onPress = { () => navigate('Details', {info: homepage.joint[i]} ) } />
+                         );
+                      })}
+                  </Table>
+                  <Table borderStyle = { {borderWidth: 2, borderColor: 'transparent'} }>
+                      <Row  data={state.personalHead} style={styles.head} textStyle={styles.headtext}/>
+                      {state.personalTable.map( (item, i) => {
+                         return (
+                             <Row
+                                 key={i}
+                                 data={item}
+                                 textStyle={styles.text}
+                                 onPress = { () => navigate('Details', {info: homepage.personal[i]} ) } />
+                         );
+                      })}
+                  </Table>
             </View>
         );
     }
@@ -64,14 +108,23 @@ class DetailsScreen extends React.Component {
         }
     }
     render() {
-        const {params} = this.props.navigation.state;
+        const {info} = this.props.navigation.state.params;
         return (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <Text>Purchase Screen -- {params.name} </Text>
+            <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
+                <View style = {styles.detailview}>
+                    <Text style = {styles.detailtext}>
+                        {` Merchant: ${info.merchant}`}
+                    </Text>
+                    <Text style = {styles.text}>
+                        {` Payment: $${info.payment} \n Date: ${info.date} \n Card: ${info.card_last_4}`}
+                    </Text>
+                </View>
+
+                <View style = {{alignItems: 'center'}}>
                 <Picker
                     selectedValue={this.state.budget}
                     style={{ height: 50, width: 250 }}
-                    onValueChange={this.updateBudget}>
+                    onValueChange={this.updateBudget} >
                     <Picker.Item label="Please select a budget" value="0" />
                     <Picker.Item label="Joint" value="joint" />
                     <Picker.Item label="Personal" value="personal" />
@@ -97,10 +150,15 @@ class DetailsScreen extends React.Component {
                     <Picker.Item label="Riley" value="riley" />
                     <Picker.Item label="Vivian" value="vivian" />
                 </Picker>
+
                 <TextInput
+                    style = {styles.textbox}
+                    multiline = {true}
+                    numberOfLines = {4}
+                    placeholder = "Notes and other details"
                     onChangeText={(text) => this.setState({text})}
-                    value = {this.state.text}
                 />
+                </View>
             </View>
         );
     }
@@ -128,8 +186,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
-        paddingTop: 22
-        //justifyContent: 'space-evenly',
+        paddingTop: 22,
+        //justifyContent: 'space-evenly'
         //alignItems: 'center',
     },
     sectionHeader: {
@@ -149,4 +207,16 @@ const styles = StyleSheet.create({
         fontSize: 18,
         height: 44,
     },
+    head: {height: 40, backgroundColor: '#f1f8ff'},
+    headtext: {margin: 6, fontSize: 20, fontWeight: 'bold'},
+    text: {margin: 6, fontSize: 18},
+    textbox: {borderWidth: 1, padding: 10},
+    detailtext: {margin: 6, fontSize: 18},
+    detailview: {
+        alignItems: 'flex-start',
+        backgroundColor : 'powderblue',
+        paddingTop: 2,
+        paddingLeft: 10,
+        paddingRight: 10,
+        paddingBottom: 2}
 });
