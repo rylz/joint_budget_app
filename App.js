@@ -1,12 +1,17 @@
 import React, {Component} from 'react';
 import {createStackNavigator, createAppContainer} from 'react-navigation';
-import { Alert, Button, Picker, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, Dimensions, Keyboard, Picker, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import moment from 'moment'
+
 
 import {homepage, transaction} from './example_api_results.js'
 
 const MERCHANT_CHAR_LIM = 15
+const NUM_TRANSACTIONS = 15
+const {State: TextInputState} = TextInput;
+const WIDTH = Dimensions.get('window').width
+const HEIGHT = Dimensions.get('window').height
 
 // changing moment.js default print values to shorthand
 moment.updateLocale('en', {
@@ -38,28 +43,21 @@ class HomeScreen extends React.Component {
         const state = this.state;
         const {navigate} = this.props.navigation;
         // for loop for each category, for each transaction
-        for (let i=0; i<2; i++) {
-            // TODO: sort by date
-            if (homepage.unclaimed.length !== 0) {
-                item = homepage.unclaimed[i];
-                state.unclaimedTable.push([ moment(item.date).fromNow() , item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
-            }
+        for (let i=0; i<Math.min(homepage.unclaimed.length, NUM_TRANSACTIONS); i++) {
+            item = homepage.unclaimed[i];
+            state.unclaimedTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
         }
-        for (let i=0; i<2; i++) {
-            if (homepage.joint.length !== 0) {
-                item = homepage.joint[i];
-                state.jointTable.push([item.date, item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
-            }
+        for (let i=0; i<Math.min(homepage.joint.length, NUM_TRANSACTIONS); i++) {
+            item = homepage.joint[i];
+            state.jointTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
         }
-        for (let i=0; i<2; i++) {
-            if (homepage.personal.length !== 0) {
-              item = homepage.personal[i];
-              state.personalTable.push([item.date, item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
-            }
+        for (let i=0; i<Math.min(homepage.personal.length, NUM_TRANSACTIONS); i++) {
+            item = homepage.personal[i];
+            state.personalTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
         }
         return (
-              <View style={styles.homeContainer}>
-                  <Table borderStyle = { {borderWidth: 2, borderColor: 'transparent'} }>
+              <ScrollView style={styles.homeContainer}>
+                  <Table borderStyle = { styles.homeTable }>
                       <Row  data={ ['Unclaimed']} style={styles.head} textStyle={styles.headtext}/>
                       {state.unclaimedTable.map( (item, i) => {
                          return (
@@ -72,7 +70,7 @@ class HomeScreen extends React.Component {
                          );
                       })}
                   </Table>
-                  <Table borderStyle = { {borderWidth: 2, borderColor: 'transparent'} }>
+                  <Table borderStyle = { styles.homeTable }>
                       <Row  data={ ['Joint'] } style={styles.head} textStyle={styles.headtext}/>
                       {state.jointTable.map( (item, i) => {
                          return (
@@ -84,7 +82,7 @@ class HomeScreen extends React.Component {
                          );
                       })}
                   </Table>
-                  <Table borderStyle = { {borderWidth: 2, borderColor: 'transparent'} }>
+                  <Table borderStyle = { styles.homeTable }>
                       <Row  data={ ['Personal'] } style={styles.head} textStyle={styles.headtext}/>
                       {state.personalTable.map( (item, i) => {
                          return (
@@ -96,7 +94,7 @@ class HomeScreen extends React.Component {
                          );
                       })}
                   </Table>
-            </View>
+            </ScrollView>
         );
     }
 }
@@ -105,7 +103,19 @@ class DetailsScreen extends React.Component {
     state = {budget: '', budgetval: '',
              category: '', categoryval: '',
              payer: '', payerval: '',
-             text: 'Notes: '}
+             text: '',
+             shift: new Animated.Value(0)}
+
+    componentWillMount() {
+        this.keyboardDidShowSub = Keyboard.addListener('keyboardDidShow', this.handleKeyboardDidShow);
+        this.keyboardDidHideSub = Keyboard.addListener('keyboardDidHide', this.handleKeyboardDidHide);
+    }
+
+    componentWillUnmount() {
+        this.keyboardDidShowSub.remove();
+        this.keyboardDidHideSub.remove();
+    }
+
     updateBudget = (label, value) => {
         if (value !== 0) {
             this.setState({budget:label})
@@ -123,6 +133,7 @@ class DetailsScreen extends React.Component {
     }
     render() {
         const {info} = this.props.navigation.state.params;
+        const {shift} = this.state;
         const tableData = [
                ['Merchant'],
                ['Payment'],
@@ -135,13 +146,13 @@ class DetailsScreen extends React.Component {
         tableData[3].push(info.card_last_4)
 
         return (
-            <View style={styles.detailContainer}>
+            <Animated.View style={ [styles.detailContainer, {transform: [{translateY:shift}]}] }>
                 <Table borderStyle = { {borderWidth: 1, borderColor: 'mediumturquoise'}}>
                       <Row data ={['Transaction Details']} style={styles.head} textStyle={styles.headtext}/>
                       <Rows data = {tableData} textStyle={styles.text} />
                 </Table>
 
-                <View style = {{alignItems: 'center', paddingTop: 30}}>
+                <View style = {{alignItems: 'center', paddingTop: 0.05*HEIGHT}}>
                     <Picker
                         selectedValue={this.state.budget}
                         style={styles.picker}
@@ -182,8 +193,41 @@ class DetailsScreen extends React.Component {
                         onChangeText={(text) => this.setState({text})}
                     />
                 </View>
-            </View>
+            </Animated.View>
         );
+    }
+
+    handleKeyboardDidShow = (event) => {
+        const {height: windowHeight} = Dimensions.get('window');
+        const keyboardHeight = event.endCoordinates.height;
+        const currentlyFocusedField = TextInputState.currentlyFocusedField();
+        UIManager.measure(currentlyFocusedField, (originX, originY, width, height, pageX, pageY) => {
+            const fieldHeight = height;
+            const fieldTop = pageY;
+            const gap = (windowHeight - keyboardHeight) - (fieldTop + fieldHeight);
+            if (gap >= 0) {
+                return;
+            }
+            Animated.timing(
+                this.state.shift,
+                {
+                    toValue: gap,
+                    duration: 100,
+                    useNativeDriver: true,
+                }
+            ).start();
+        });
+    }
+
+    handleKeyboardDidHide = () => {
+        Animated.timing(
+            this.state.shift,
+            {
+                toValue: 0,
+                duration: 100,
+                useNativeDriver: true,
+            }
+        ).start();
     }
 }
 
@@ -211,17 +255,25 @@ const styles = StyleSheet.create({
         backgroundColor: 'lightcyan',
         paddingTop: 22,
     },
+    head: {height: 40, backgroundColor: 'mediumturquoise'},
+    headtext: {margin: 6, fontSize: 20, fontWeight: 'bold'},
     homeContainer: {
         flex: 1,
         backgroundColor: 'lightcyan',
         paddingTop: 22,
     },
-    head: {height: 40, backgroundColor: 'mediumturquoise'},
-    headtext: {margin: 6, fontSize: 20, fontWeight: 'bold'},
+    homeTable: {
+        borderWidth: 2,
+        borderColor: 'transparent',
+    },
     picker: {
-        height: 50,
-        width: 300,
+        height:0.08*HEIGHT,
+        width: 0.85*WIDTH,
     },
     text: {margin: 6, fontSize: 18},
-    textbox: {height: 100, width: 300, borderWidth: 1, padding: 10},
+    textbox: {
+        height:0.15*HEIGHT,
+        width: 0.85*WIDTH,
+        borderWidth: 1,
+        padding: 10},
 });
