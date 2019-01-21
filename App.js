@@ -34,63 +34,73 @@ moment.updateLocale('en', {
 
 // fetch('https://riley_server.com/mydata.json')
 class HomeScreen extends React.Component {
-    state = {
-        unclaimedTable: [],
-        jointTable: [],
-        personalTable: []
-    }
     render() {
-        const state = this.state;
         const {navigate} = this.props.navigation;
-        // for loop for each category, for each transaction
-        for (let i=0; i<Math.min(homepage.unclaimed.length, NUM_TRANSACTIONS); i++) {
-            item = homepage.unclaimed[i];
-            state.unclaimedTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
+
+        // transactions sorted in descending order of date
+        const unclaimed = homepage.unclaimed.sort( (a,b) => {
+            return moment(b.date) - moment(a.date)
+        })
+        const joint = homepage.joint.sort( (a,b) => {
+            return moment(b.date) - moment(a.date)
+        })
+        const personal = homepage.personal.sort( (a,b) => {
+            return moment(b.date) - moment(a.date)
+        })
+
+        // arrays for display on homepage
+        const unclaimedTable = []
+        const jointTable = []
+        const personalTable = []
+        for (let i=0; i<Math.min(unclaimed.length, NUM_TRANSACTIONS); i++) {
+            item = unclaimed[i]
+            unclaimedTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
         }
-        for (let i=0; i<Math.min(homepage.joint.length, NUM_TRANSACTIONS); i++) {
-            item = homepage.joint[i];
-            state.jointTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
+        for (let i=0; i<Math.min(joint.length, NUM_TRANSACTIONS); i++) {
+            item = joint[i];
+            jointTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
         }
-        for (let i=0; i<Math.min(homepage.personal.length, NUM_TRANSACTIONS); i++) {
-            item = homepage.personal[i];
-            state.personalTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
+        for (let i=0; i<Math.min(personal.length, NUM_TRANSACTIONS); i++) {
+            item = personal[i];
+            personalTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
         }
+
         return (
               <ScrollView style={styles.homeContainer}>
                   <Table borderStyle = { styles.homeTable }>
                       <Row  data={ ['Unclaimed']} style={styles.head} textStyle={styles.headtext}/>
-                      {state.unclaimedTable.map( (item, i) => {
+                      {unclaimedTable.map( (item, i) => {
                          return (
                              <Row
                                  key={i}
                                  data={item}
                                  textStyle={styles.text}
                                  flexArr={[1, 2, 1]}
-                                 onPress = { () => navigate('Details', {info: homepage.unclaimed[i]} ) } />
+                                 onPress = { () => navigate('Details', {info: unclaimed[i]} ) } />
                          );
                       })}
                   </Table>
                   <Table borderStyle = { styles.homeTable }>
                       <Row  data={ ['Joint'] } style={styles.head} textStyle={styles.headtext}/>
-                      {state.jointTable.map( (item, i) => {
+                      {jointTable.map( (item, i) => {
                          return (
                              <Row
                                  key={i}
                                  data={item}
                                  textStyle={styles.text}
-                                 onPress = { () => navigate('Details', {info: homepage.joint[i]} ) } />
+                                 onPress = { () => navigate('Details', {info: joint[i]} ) } />
                          );
                       })}
                   </Table>
                   <Table borderStyle = { styles.homeTable }>
                       <Row  data={ ['Personal'] } style={styles.head} textStyle={styles.headtext}/>
-                      {state.personalTable.map( (item, i) => {
+                      {personalTable.map( (item, i) => {
                          return (
                              <Row
                                  key={i}
                                  data={item}
                                  textStyle={styles.text}
-                                 onPress = { () => navigate('Details', {info: homepage.personal[i]} ) } />
+                                 onPress = { () => navigate('Details', {info: personal[i]} ) } />
                          );
                       })}
                   </Table>
