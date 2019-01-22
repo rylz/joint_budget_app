@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {createStackNavigator, createAppContainer} from 'react-navigation';
+import {createStackNavigator, createAppContainer, createMaterialTopTabNavigator} from 'react-navigation';
 import { Animated, Dimensions, Keyboard, Picker, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import moment from 'moment'
@@ -241,21 +241,40 @@ class DetailsScreen extends React.Component {
     }
 }
 
-const AppNavigator = createStackNavigator(
-  {
-    Home: HomeScreen,
-    Details: DetailsScreen,
-  },
-  {
-    initialRouteName: 'Home',
-  }
-);
+class SpendingScreen extends React.Component {
+    render() {
+        return (
+            <View>
+                <Text> Spending information here! </Text>
+            </View>
+        );
+    }
+}
 
-const AppContainer = createAppContainer(AppNavigator);
+
+const TabNavigator = createMaterialTopTabNavigator({
+    Stack: createStackNavigator({
+        Home: HomeScreen,
+        Details: DetailsScreen,
+      },
+      {
+        initialRouteName: 'Home',
+        defaultNavigationOptions: {
+            header: null,
+        }
+      }),
+    Spending: SpendingScreen,
+},{
+    tabBarOptions: {
+        style: {paddingTop: 0.03*HEIGHT}
+    }
+});
+
+const TabContainer = createAppContainer(TabNavigator);
 
 export default class App extends React.Component {
   render() {
-    return <AppContainer />;
+    return <TabContainer />
   }
 }
 
