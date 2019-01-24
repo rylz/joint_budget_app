@@ -4,9 +4,6 @@ import { Animated, Dimensions, Keyboard, Picker, ScrollView, StyleSheet, Text, T
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import moment from 'moment'
 
-
-import {homepage, transaction} from './example_api_results.js'
-
 const MERCHANT_CHAR_LIM = 15
 const NUM_TRANSACTIONS = 15
 const {State: TextInputState} = TextInput;
@@ -34,17 +31,41 @@ moment.updateLocale('en', {
 
 // fetch('https://riley_server.com/mydata.json')
 class HomeScreen extends React.Component {
+    state = {isLoading: true}
+
+    componentDidMount() {
+        return fetch( 'https://vrbudget.herokuapp.com')
+            .then( (response) => response.json())
+            .then( (responseJson) => {
+                this.setState({
+                    isLoading: false,
+                    unclaimed: responseJson.unclaimed,
+                    joint: responseJson.joint,
+                    personal: responseJson.vivian,
+                })
+            } )
+            .catch( (error) => {
+                console.error(error);
+            });
+    }
+
     render() {
+        if (this.state.isLoading) {
+          return (
+            <View style={ {flex: 1, padding: 20, backgroundColor: 'lightcyan'} }>
+            </View>
+          )
+        }
         const {navigate} = this.props.navigation;
 
         // transactions sorted in descending order of date
-        const unclaimed = homepage.unclaimed.sort( (a,b) => {
+        const unclaimed = this.state.unclaimed.sort( (a,b) => {
             return moment(b.date) - moment(a.date)
         })
-        const joint = homepage.joint.sort( (a,b) => {
+        const joint = this.state.joint.sort( (a,b) => {
             return moment(b.date) - moment(a.date)
         })
-        const personal = homepage.personal.sort( (a,b) => {
+        const personal = this.state.personal.sort( (a,b) => {
             return moment(b.date) - moment(a.date)
         })
 
