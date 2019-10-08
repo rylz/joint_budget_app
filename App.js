@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {createStackNavigator, createAppContainer, createMaterialTopTabNavigator} from 'react-navigation';
-import { Animated, Dimensions, Keyboard, Picker, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
+import { Alert, Animated, Button, Dimensions, Keyboard, Picker, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import moment from 'moment'
 
@@ -131,11 +131,25 @@ class HomeScreen extends React.Component {
 }
 
 class DetailsScreen extends React.Component {
-    state = {budget: '', budgetval: '',
-             category: '', categoryval: '',
-             payer: '', payerval: '',
-             text: '',
-             shift: new Animated.Value(0)}
+    state = {
+        budget: '',
+        category: '',
+        payer: '',
+        text: '',
+        saved: true,
+        shift: new Animated.Value(0)
+    }
+
+    constructor(props){
+        super(props)
+        const {info} = props.navigation.state.params;
+        if (this.state.category !== null) {
+            this.state.category = info.category.toLowerCase()
+        }
+        if (this.state.note !== null) {
+            this.state.text = info.notes
+        }
+    }
 
     componentWillMount() {
         this.keyboardDidShowSub = Keyboard.addListener('keyboardDidShow', this.handleKeyboardDidShow);
@@ -149,17 +163,17 @@ class DetailsScreen extends React.Component {
 
     updateBudget = (label, value) => {
         if (value !== 0) {
-            this.setState({budget:label})
+            this.setState({budget:label, saved: false})
         }
     }
     updateCategory = (label, value) => {
         if (value !== 0) {
-            this.setState({category:label})
+            this.setState({category:label,saved: false})
         }
     }
     updatePayer = (label, value) => {
         if (value !== 0) {
-            this.setState({payer:label})
+            this.setState({payer:label, saved: false})
         }
     }
     render() {
@@ -183,7 +197,7 @@ class DetailsScreen extends React.Component {
                       <Rows data = {tableData} textStyle={styles.text} />
                 </Table>
 
-                <View style = {{alignItems: 'center', paddingTop: 0.05*HEIGHT}}>
+                <View style = {styles.pickerContainer}>
                     <Picker
                         selectedValue={this.state.budget}
                         style={styles.picker}
@@ -217,11 +231,24 @@ class DetailsScreen extends React.Component {
 
                 <View style = {{alignItems: 'center', paddingTop: 20}} >
                     <TextInput
+                        value = {this.state.text}
                         style = {styles.textbox}
                         multiline = {true}
                         numberOfLines = {4}
+                        keyboardType='default'
+                        returnKeyLabel = 'done'
                         placeholder = "Notes and other details"
-                        onChangeText={(text) => this.setState({text})}
+                        onChangeText={(text) => this.setState({text, saved:false})}
+                    />
+                </View>
+                <View style = {styles.buttonContainer}>
+                    <Button
+                        onPress = {() => {
+                            this.setState({saved: true})
+                            Alert.alert("Changes saved.")
+                            this.props.navigation.goBack()
+                        }}
+                        title = "Submit"
                     />
                 </View>
             </Animated.View>
@@ -300,6 +327,9 @@ export default class App extends React.Component {
 }
 
 const styles = StyleSheet.create({
+    buttonContainer: {
+        margin: 25,
+    },
     detailContainer: {
         flex: 1,
         backgroundColor: 'lightcyan',
@@ -319,6 +349,10 @@ const styles = StyleSheet.create({
     picker: {
         height:0.08*HEIGHT,
         width: 0.85*WIDTH,
+    },
+    pickerContainer: {
+        alignItems: 'center',
+        paddingTop: 0.03*HEIGHT
     },
     text: {margin: 6, fontSize: 18},
     textbox: {
