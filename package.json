@@ -7,15 +7,17 @@
     "eject": "expo eject"
   },
   "dependencies": {
-    "expo": "^31.0.2",
+    "expo": "^37.0.0",
     "moment": "^2.23.0",
-    "react": "16.5.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-31.0.0.tar.gz",
-    "react-native-table-component": "^1.2.0",
-    "react-navigation": "^3.0.9"
+    "react": "16.9.0",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-37.0.0.tar.gz",
+    "react-native-gesture-handler": "^1.6.1",
+    "react-native-screens": "~2.2.0",
+    "react-native-table-component": "^1.2.1",
+    "react-navigation": "^3.13.0"
   },
   "devDependencies": {
-    "babel-preset-expo": "^5.0.0"
+    "babel-preset-expo": "^8.1.0"
   },
   "private": true
 }
