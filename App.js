@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
-import {createStackNavigator, createAppContainer, createMaterialTopTabNavigator} from 'react-navigation';
+import { createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
+import { createMaterialTopTabNavigator } from 'react-navigation-tabs';
 import { Animated, Dimensions, Keyboard, Picker, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import moment from 'moment'
@@ -29,7 +31,6 @@ moment.updateLocale('en', {
     }
 });
 
-// fetch('https://riley_server.com/mydata.json')
 class HomeScreen extends React.Component {
     state = {isLoading: true}
 
@@ -281,7 +282,7 @@ const TabNavigator = createMaterialTopTabNavigator({
       {
         initialRouteName: 'Home',
         defaultNavigationOptions: {
-            header: null,
+            headerShown: false,
         }
       }),
     Spending: SpendingScreen,
