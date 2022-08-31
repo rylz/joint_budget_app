@@ -1,5 +1,8 @@
 import React, {Component} from 'react';
-import {createStackNavigator, createAppContainer, createMaterialTopTabNavigator} from 'react-navigation';
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+
 import { Animated, Dimensions, Keyboard, Picker, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import moment from 'moment'
@@ -273,30 +276,46 @@ class SpendingScreen extends React.Component {
 }
 
 
-const TabNavigator = createMaterialTopTabNavigator({
-    Stack: createStackNavigator({
-        Home: HomeScreen,
-        Details: DetailsScreen,
-      },
-      {
-        initialRouteName: 'Home',
-        defaultNavigationOptions: {
-            header: null,
-        }
-      }),
-    Spending: SpendingScreen,
-},{
-    tabBarOptions: {
-        style: {paddingTop: 0.03*HEIGHT}
-    }
-});
+const Tab = createMaterialTopTabNavigator();
+const Stack = createStackNavigator();
 
-const TabContainer = createAppContainer(TabNavigator);
+function MyStack() {
+    return (
+        <Stack.Navigator
+            initialRouteName="Home"
+        >
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Details" component={DetailsScreen} />
+        </Stack.Navigator>
+    );
+}
 
-export default class App extends React.Component {
-  render() {
-    return <TabContainer />
-  }
+// TODO: find equivalent of defaultNavigationOptions
+//    Stack: createStackNavigator({
+//        Home: HomeScreen,
+//        Details: DetailsScreen,
+//      },
+//      {
+//        initialRouteName: 'Home',
+//        defaultNavigationOptions: {
+//            header: null,
+//        }
+//      }),
+
+
+export default function App() {
+    return (
+        <NavigationContainer>{
+            <Tab.Navigator
+                screenOptions={{
+                    tabBarStyle: {paddingTop: 0.03*HEIGHT},
+                }}
+            >
+                <Tab.Screen name="Home" component={HomeScreen} />
+                <Tab.Screen name="Spending" component={SpendingScreen} />
+            </Tab.Navigator>
+        }</NavigationContainer>
+    );
 }
 
 const styles = StyleSheet.create({
