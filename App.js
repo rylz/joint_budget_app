@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState, useEffect, Component} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
@@ -32,106 +32,101 @@ moment.updateLocale('en', {
     }
 });
 
-// fetch('https://riley_server.com/mydata.json')
-class HomeScreen extends React.Component {
-    state = {isLoading: true}
+function HomeScreen ({ navigation }) {
+    const [isLoading, setLoading] = useState(true);
+    // TODO: add riley or determine user
+    const [data, setData] = useState({unclaimed : [], joint : [], vivian : [] });
 
-    componentDidMount() {
+    const loadTransactions = () => {
         return fetch( 'https://vrbudget.herokuapp.com')
             .then( (response) => response.json())
             .then( (responseJson) => {
-                this.setState({
-                    isLoading: false,
-                    unclaimed: responseJson.unclaimed,
-                    joint: responseJson.joint,
-                    personal: responseJson.vivian,
-                })
+                setData(responseJson);
+                setLoading(false);
             } )
             .catch( (error) => {
                 console.error(error);
             });
     }
 
-    render() {
-        if (this.state.isLoading) {
-          return (
-            <View style={ {flex: 1, padding: 20, backgroundColor: 'lightcyan'} }>
-            </View>
-          )
-        }
-        const {navigate} = this.props.navigation;
+    useEffect(() => {
+      loadTransactions();
+    }, []);
 
-        // transactions sorted in descending order of date
-        const unclaimed = this.state.unclaimed.sort( (a,b) => {
-            return moment(b.date) - moment(a.date)
-        })
-        const joint = this.state.joint.sort( (a,b) => {
-            return moment(b.date) - moment(a.date)
-        })
-        const personal = this.state.personal.sort( (a,b) => {
-            return moment(b.date) - moment(a.date)
-        })
+    // transactions sorted in descending order of date
+    const unclaimed = [...data.unclaimed].sort( (a,b) => moment(b.date) - moment(a.date) );
+    const joint = [...data.joint].sort( (a,b) => moment(b.date) - moment(a.date) );
+    const personal = [...data.vivian].sort( (a,b) => moment(b.date) - moment(a.date) );
 
-        // arrays for display on homepage
-        const unclaimedTable = []
-        const jointTable = []
-        const personalTable = []
-        for (let i=0; i<Math.min(unclaimed.length, NUM_TRANSACTIONS); i++) {
-            item = unclaimed[i]
-            unclaimedTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
-        }
-        for (let i=0; i<Math.min(joint.length, NUM_TRANSACTIONS); i++) {
-            item = joint[i];
-            jointTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
-        }
-        for (let i=0; i<Math.min(personal.length, NUM_TRANSACTIONS); i++) {
-            item = personal[i];
-            personalTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
-        }
+    // arrays for display on homepage
+    const unclaimedTable = [];
+    const jointTable = [];
+    const personalTable = [];
+    for (let i=0; i<Math.min(unclaimed.length, NUM_TRANSACTIONS); i++) {
+        item = unclaimed[i];
+        unclaimedTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
+    }
+    for (let i=0; i<Math.min(joint.length, NUM_TRANSACTIONS); i++) {
+        item = joint[i];
+        jointTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
+    }
+    for (let i=0; i<Math.min(personal.length, NUM_TRANSACTIONS); i++) {
+        item = personal[i];
+        personalTable.push([ moment(item.date).fromNow(), item.merchant.substring(0, MERCHANT_CHAR_LIM), `$${item.payment}`])
+    }
 
+    // could add loading bar
+    if (isLoading) {
         return (
-              <ScrollView style={styles.homeContainer}>
-                  <Table borderStyle = { styles.homeTable }>
-                      <Row  data={ ['Unclaimed']} style={styles.head} textStyle={styles.headtext}/>
-                      {unclaimedTable.map( (item, i) => {
-                         return (
-                             <Row
-                                 key={i}
-                                 data={item}
-                                 textStyle={styles.text}
-                                 flexArr={[1, 2, 1]}
-                                 onPress = { () => navigate('Details', {info: unclaimed[i]} ) } />
-                         );
-                      })}
-                  </Table>
-                  <Table borderStyle = { styles.homeTable }>
-                      <Row  data={ ['Joint'] } style={styles.head} textStyle={styles.headtext}/>
-                      {jointTable.map( (item, i) => {
-                         return (
-                             <Row
-                                 key={i}
-                                 data={item}
-                                 textStyle={styles.text}
-                                 onPress = { () => navigate('Details', {info: joint[i]} ) } />
-                         );
-                      })}
-                  </Table>
-                  <Table borderStyle = { styles.homeTable }>
-                      <Row  data={ ['Personal'] } style={styles.head} textStyle={styles.headtext}/>
-                      {personalTable.map( (item, i) => {
-                         return (
-                             <Row
-                                 key={i}
-                                 data={item}
-                                 textStyle={styles.text}
-                                 onPress = { () => navigate('Details', {info: personal[i]} ) } />
-                         );
-                      })}
-                  </Table>
-            </ScrollView>
+              <View style={ {flex: 1, padding: 20, backgroundColor: 'lightcyan'} }>
+              </View>
         );
     }
+
+    return (
+        <ScrollView style={styles.homeContainer}>
+            <Table borderStyle = { styles.homeTable }>
+                // TODO: textStyle throws warning
+                <Row data={ ['Unclaimed']} style={styles.head} textStyle={styles.headtext}/>
+                {unclaimedTable.map( (item, i) => {
+                   return (
+                       <Row
+                           key={i}
+                           data={item}
+                           textStyle={styles.text}
+                           flexArr={[1, 2, 1]}
+                           onPress = { () => navigation.navigate('Details', {info: unclaimed[i]} ) } />
+                   );
+                })}
+            </Table>
+            <Table borderStyle = { styles.homeTable }>
+                <Row data={ ['Joint'] } style={styles.head} textStyle={styles.headtext}/>
+                {jointTable.map( (item, i) => {
+                   return (
+                       <Row
+                           key={i}
+                           data={item}
+                           textStyle={styles.text}
+                           onPress = { () => navigation.navigate('Details', {info: joint[i]} ) } />
+                   );
+                })}
+            </Table>
+            <Table borderStyle = { styles.homeTable }>
+                <Row data={ ['Personal'] } style={styles.head} textStyle={styles.headtext}/>
+                {personalTable.map( (item, i) => {
+                   return (
+                       <Row
+                           key={i}
+                           data={item}
+                           textStyle={styles.text}
+                           onPress = { () => navigation.navigate('Details', {info: personal[i]} ) } />
+                   );
+                })}
+            </Table>
+        </ScrollView>
+      );
 }
+
 
 class DetailsScreen extends React.Component {
     state = {budget: '', budgetval: '',
@@ -182,7 +177,7 @@ class DetailsScreen extends React.Component {
         return (
             <Animated.View style={ [styles.detailContainer, {transform: [{translateY:shift}]}] }>
                 <Table borderStyle = { {borderWidth: 1, borderColor: 'mediumturquoise'}}>
-                      <Row data ={['Transaction Details']} style={styles.head} textStyle={styles.headtext}/>
+                      <Row data ={['Transaction Details']} style={styles.head} textStyle={styles.headtext} />
                       <Rows data = {tableData} textStyle={styles.text} />
                 </Table>
 
@@ -284,8 +279,14 @@ function MyStack() {
         <Stack.Navigator
             initialRouteName="Home"
         >
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Details" component={DetailsScreen} />
+            <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+            />
+            <Stack.Screen
+                name="Details"
+                component={DetailsScreen}
+            />
         </Stack.Navigator>
     );
 }
