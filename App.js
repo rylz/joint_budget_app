@@ -285,50 +285,36 @@ class SpendingScreen extends React.Component {
 const Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
 
-function HomeStack() {
+function HomeTabs() {
     return (
-        <Stack.Navigator
-            initialRouteName="HomeScreen"
-            //screenOptions={{
-            //    headerShown: false
-            //}}
-        >
-            <Stack.Screen
-                name="HomeScreen"
-                component={HomeScreen}
-            />
-            <Stack.Screen
-                name="Details"
-                component={DetailsScreen}
-            />
-        </Stack.Navigator>
+        <Tab.Navigator
+               screenOptions={{
+                   tabBarStyle: {paddingTop: 0.03*HEIGHT},
+               }}
+           >
+               <Tab.Screen name="HomeScreen" component={HomeScreen} />
+               <Tab.Screen name="Spending" component={SpendingScreen} />
+        </Tab.Navigator>
     );
 }
-
-// TODO: find equivalent of defaultNavigationOptions
-//    Stack: createStackNavigator({
-//        Home: HomeScreen,
-//        Details: DetailsScreen,
-//      },
-//      {
-//        initialRouteName: 'Home',
-//        defaultNavigationOptions: {
-//            header: null,
-//        }
-//      }),
-
 
 export default function App() {
     return (
         <NavigationContainer>{
-            <Tab.Navigator
-                screenOptions={{
-                    tabBarStyle: {paddingTop: 0.03*HEIGHT},
-                }}
+            <Stack.Navigator
             >
-                <Tab.Screen name="Home" component={HomeStack} />
-                <Tab.Screen name="Spending" component={SpendingScreen} />
-            </Tab.Navigator>
+                <Stack.Screen
+                    options={{
+                        headerShown: false
+                    }}
+                    name="HomeTabs"
+                    component={HomeTabs}
+                />
+                <Stack.Screen
+                    name="Details"
+                    component={DetailsScreen}
+                />
+            </Stack.Navigator>
         }</NavigationContainer>
     );
 }
