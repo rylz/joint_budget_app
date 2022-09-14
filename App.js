@@ -2,8 +2,9 @@ import React, {useState, useEffect, Component} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import {Picker} from '@react-native-picker/picker';
 
-import { Animated, Dimensions, Keyboard, Picker, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
+import { Animated, Dimensions, Keyboard, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import moment from 'moment'
 
@@ -84,9 +85,9 @@ function HomeScreen ({ navigation }) {
     }
 
     return (
+        // TODO: textStyle throws warning
         <ScrollView style={styles.homeContainer}>
             <Table borderStyle = { styles.homeTable }>
-                // TODO: textStyle throws warning
                 <Row data={ ['Unclaimed']} style={styles.head} textStyle={styles.headtext}/>
                 {unclaimedTable.map( (item, i) => {
                    return (
@@ -128,136 +129,146 @@ function HomeScreen ({ navigation }) {
 }
 
 
-class DetailsScreen extends React.Component {
-    state = {budget: '', budgetval: '',
-             category: '', categoryval: '',
-             payer: '', payerval: '',
-             text: '',
-             shift: new Animated.Value(0)}
+function DetailsScreen ({ navigation, route }) {
+    const {info} = route.params;
+    const [budget, setBudget] = useState();
+    const [category, setCategory] = useState();
+    const [payer, setPayer] = useState();
+    const [text, setText] = useState(); // TODO maybe use empty string?
+    //state = {budget: '', budgetval: '',
+    //         category: '', categoryval: '',
+    //         payer: '', payerval: '',
+    //         text: '',
+    //         shift: new Animated.Value(0)}
 
-    componentWillMount() {
-        this.keyboardDidShowSub = Keyboard.addListener('keyboardDidShow', this.handleKeyboardDidShow);
-        this.keyboardDidHideSub = Keyboard.addListener('keyboardDidHide', this.handleKeyboardDidHide);
-    }
+    const [keyboardStatus, setKeyboardStatus] = useState(undefined);
 
-    componentWillUnmount() {
-        this.keyboardDidShowSub.remove();
-        this.keyboardDidHideSub.remove();
-    }
-
-    updateBudget = (label, value) => {
-        if (value !== 0) {
-            this.setState({budget:label})
-        }
-    }
-    updateCategory = (label, value) => {
-        if (value !== 0) {
-            this.setState({category:label})
-        }
-    }
-    updatePayer = (label, value) => {
-        if (value !== 0) {
-            this.setState({payer:label})
-        }
-    }
-    render() {
-        const {info} = this.props.navigation.state.params;
-        const {shift} = this.state;
-        const tableData = [
-               ['Merchant'],
-               ['Payment'],
-               ['Date'],
-               ['Card']
-             ]
-        tableData[0].push(info.merchant)
-        tableData[1].push(`$${info.payment}`)
-        tableData[2].push( moment(info.date).format('MMM DD YY, HH:mm') )
-        tableData[3].push(info.card_last_4)
-
-        return (
-            <Animated.View style={ [styles.detailContainer, {transform: [{translateY:shift}]}] }>
-                <Table borderStyle = { {borderWidth: 1, borderColor: 'mediumturquoise'}}>
-                      <Row data ={['Transaction Details']} style={styles.head} textStyle={styles.headtext} />
-                      <Rows data = {tableData} textStyle={styles.text} />
-                </Table>
-
-                <View style = {{alignItems: 'center', paddingTop: 0.05*HEIGHT}}>
-                    <Picker
-                        selectedValue={this.state.budget}
-                        style={styles.picker}
-                        onValueChange={this.updateBudget} >
-                        <Picker.Item label="Please select a budget" value="0" />
-                        <Picker.Item label="Joint" value="joint" />
-                        <Picker.Item label="Personal" value="personal" />
-                    </Picker>
-                    <Picker
-                        selectedValue={this.state.category}
-                        style={styles.picker}
-                        onValueChange={this.updateCategory}>
-                        <Picker.Item label="Please select a category" value="0" />
-                        <Picker.Item label="Housemates" value="housemates" />
-                        <Picker.Item label="Groceries" value="groceries" />
-                        <Picker.Item label="Entertainment" value="entertainment" />
-                        <Picker.Item label="Vacation" value="vacation" />
-                        <Picker.Item label="Auto" value="auto" />
-                        <Picker.Item label="Misc" value="misc" />
-                        <Picker.Item label="Charity" value="charity" />
-                    </Picker>
-                    <Picker
-                        selectedValue={this.state.payer}
-                        style={styles.picker}
-                        onValueChange={this.updatePayer}>
-                        <Picker.Item label="Please select who paid" value="0" />
-                        <Picker.Item label="Riley" value="riley" />
-                        <Picker.Item label="Vivian" value="vivian" />
-                    </Picker>
-                </View>
-
-                <View style = {{alignItems: 'center', paddingTop: 20}} >
-                    <TextInput
-                        style = {styles.textbox}
-                        multiline = {true}
-                        numberOfLines = {4}
-                        placeholder = "Notes and other details"
-                        onChangeText={(text) => this.setState({text})}
-                    />
-                </View>
-            </Animated.View>
-        );
-    }
-
-    handleKeyboardDidShow = (event) => {
-        const {height: windowHeight} = Dimensions.get('window');
-        const keyboardHeight = event.endCoordinates.height;
-        const currentlyFocusedField = TextInputState.currentlyFocusedField();
-        UIManager.measure(currentlyFocusedField, (originX, originY, width, height, pageX, pageY) => {
-            const fieldHeight = height;
-            const fieldTop = pageY;
-            const gap = (windowHeight - keyboardHeight) - (fieldTop + fieldHeight);
-            if (gap >= 0) {
-                return;
-            }
-            Animated.timing(
-                this.state.shift,
-                {
-                    toValue: gap,
-                    duration: 100,
-                    useNativeDriver: true,
-                }
-            ).start();
+    //updateBudget = (label, value) => {
+    //    if (value !== 0) {
+    //        this.setState({budget:label})
+    //    }
+    //}
+    //updateCategory = (label, value) => {
+    //    if (value !== 0) {
+    //        this.setState({category:label})
+    //    }
+    //}
+    //updatePayer = (label, value) => {
+    //    if (value !== 0) {
+    //        this.setState({payer:label})
+    //    }
+    //}
+     useEffect(() => {
+        const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
+            setKeyboardStatus("Keyboard Shown");
         });
-    }
+        const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+            setKeyboardStatus("Keyboard Hidden");
+        });
+    }, []); // what are the square brackets for? They seem optional.
 
-    handleKeyboardDidHide = () => {
-        Animated.timing(
-            this.state.shift,
-            {
-                toValue: 0,
-                duration: 100,
-                useNativeDriver: true,
-            }
-        ).start();
-    }
+
+    const tableData = [
+           ['Merchant'],
+           ['Payment'],
+           ['Date'],
+           ['Card']
+         ]
+    tableData[0].push( info.merchant)
+    tableData[1].push(`$${info.payment}`)
+    tableData[2].push( moment(info.date).format('MMM DD YY, HH:mm') )
+    tableData[3].push(info.card_last_4)
+
+        //<Animated.View style={ [styles.detailContainer, {transform: [{translateY:shift}]}] }>
+    return (
+        <Animated.View style={ [styles.detailContainer] }>
+            <Table borderStyle = { {borderWidth: 1, borderColor: 'mediumturquoise'}}>
+                  <Row data ={['Transaction Details']} style={styles.head} textStyle={styles.headtext} />
+                  <Rows data = {tableData} textStyle={styles.text} />
+            </Table>
+
+            <View style = {{alignItems: 'center', paddingTop: 0.05*HEIGHT}}>
+                <Picker
+                    style={styles.picker}
+                    selectedValue={budget}
+                    onValueChange={(itemValue, itemIndex) =>
+                        setBudget(itemValue)
+                    }>
+                    <Picker.Item label="Please select a budget" value="0" />
+                    <Picker.Item label="Joint" value="joint" />
+                    <Picker.Item label="Personal" value="personal" />
+                </Picker>
+                <Picker
+                    style={styles.picker}
+                    selectedValue={category}
+                    onValueChange={(itemValue, itemIndex) =>
+                        setCategory(itemValue)
+                    }>
+                    <Picker.Item label="Please select a category" value="0" />
+                    <Picker.Item label="Housemates" value="housemates" />
+                    <Picker.Item label="Groceries" value="groceries" />
+                    <Picker.Item label="Entertainment" value="entertainment" />
+                    <Picker.Item label="Vacation" value="vacation" />
+                    <Picker.Item label="Auto" value="auto" />
+                    <Picker.Item label="Misc" value="misc" />
+                    <Picker.Item label="Charity" value="charity" />
+                </Picker>
+                <Picker
+                    style={styles.picker}
+                    selectedValue={payer}
+                    onValueChange={(itemValue, itemIndex) =>
+                        setPayer(itemValue)
+                    }>
+                    <Picker.Item label="Please select who paid" value="0" />
+                    <Picker.Item label="Riley" value="riley" />
+                    <Picker.Item label="Vivian" value="vivian" />
+                </Picker>
+            </View>
+
+                </Animated.View>
+    );
+    //<View style = {{alignItems: 'center', paddingTop: 20}} >
+            //    <TextInput
+            //        style = {styles.textbox}
+            //        multiline = {true}
+            //        numberOfLines = {4}
+            //        placeholder = "Notes and other details"
+            //        onChangeText={(text) => this.setState({text})}
+            //    />
+            //</View>
+
+    //handleKeyboardDidShow = (event) => {
+    //    const {height: windowHeight} = Dimensions.get('window');
+    //    const keyboardHeight = event.endCoordinates.height;
+    //    const currentlyFocusedField = TextInputState.currentlyFocusedField();
+    //    UIManager.measure(currentlyFocusedField, (originX, originY, width, height, pageX, pageY) => {
+    //        const fieldHeight = height;
+    //        const fieldTop = pageY;
+    //        const gap = (windowHeight - keyboardHeight) - (fieldTop + fieldHeight);
+    //        if (gap >= 0) {
+    //            return;
+    //        }
+    //        Animated.timing(
+    //            this.state.shift,
+    //            {
+    //                toValue: gap,
+    //                duration: 100,
+    //                useNativeDriver: true,
+    //            }
+    //        ).start();
+    //    });
+    //}
+
+    //handleKeyboardDidHide = () => {
+    //    Animated.timing(
+    //        this.state.shift,
+    //        {
+    //            toValue: 0,
+    //            duration: 100,
+    //            useNativeDriver: true,
+    //        }
+    //    ).start();
+    //}
 }
 
 class SpendingScreen extends React.Component {
@@ -274,13 +285,16 @@ class SpendingScreen extends React.Component {
 const Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
 
-function MyStack() {
+function HomeStack() {
     return (
         <Stack.Navigator
-            initialRouteName="Home"
+            initialRouteName="HomeScreen"
+            //screenOptions={{
+            //    headerShown: false
+            //}}
         >
             <Stack.Screen
-                name="Home"
+                name="HomeScreen"
                 component={HomeScreen}
             />
             <Stack.Screen
@@ -312,7 +326,7 @@ export default function App() {
                     tabBarStyle: {paddingTop: 0.03*HEIGHT},
                 }}
             >
-                <Tab.Screen name="Home" component={HomeScreen} />
+                <Tab.Screen name="Home" component={HomeStack} />
                 <Tab.Screen name="Spending" component={SpendingScreen} />
             </Tab.Navigator>
         }</NavigationContainer>
