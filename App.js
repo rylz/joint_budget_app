@@ -4,7 +4,8 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {Picker} from '@react-native-picker/picker';
 
-import { Animated, Dimensions, Keyboard, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
+import {Dimensions, Keyboard, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import moment from 'moment'
 
@@ -135,38 +136,17 @@ function DetailsScreen ({ navigation, route }) {
     const [category, setCategory] = useState();
     const [payer, setPayer] = useState();
     const [text, setText] = useState(); // TODO maybe use empty string?
-    //state = {budget: '', budgetval: '',
-    //         category: '', categoryval: '',
-    //         payer: '', payerval: '',
-    //         text: '',
-    //         shift: new Animated.Value(0)}
 
     const [keyboardStatus, setKeyboardStatus] = useState(undefined);
 
-    //updateBudget = (label, value) => {
-    //    if (value !== 0) {
-    //        this.setState({budget:label})
-    //    }
-    //}
-    //updateCategory = (label, value) => {
-    //    if (value !== 0) {
-    //        this.setState({category:label})
-    //    }
-    //}
-    //updatePayer = (label, value) => {
-    //    if (value !== 0) {
-    //        this.setState({payer:label})
-    //    }
-    //}
-     useEffect(() => {
+    useEffect(() => {
         const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
             setKeyboardStatus("Keyboard Shown");
         });
         const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
             setKeyboardStatus("Keyboard Hidden");
         });
-    }, []); // what are the square brackets for? They seem optional.
-
+    });
 
     const tableData = [
            ['Merchant'],
@@ -179,9 +159,8 @@ function DetailsScreen ({ navigation, route }) {
     tableData[2].push( moment(info.date).format('MMM DD YY, HH:mm') )
     tableData[3].push(info.card_last_4)
 
-        //<Animated.View style={ [styles.detailContainer, {transform: [{translateY:shift}]}] }>
     return (
-        <Animated.View style={ [styles.detailContainer] }>
+        <KeyboardAwareScrollView style={styles.detailContainer}>
             <Table borderStyle = { {borderWidth: 1, borderColor: 'mediumturquoise'}}>
                   <Row data ={['Transaction Details']} style={styles.head} textStyle={styles.headtext} />
                   <Rows data = {tableData} textStyle={styles.text} />
@@ -205,7 +184,6 @@ function DetailsScreen ({ navigation, route }) {
                         setCategory(itemValue)
                     }>
                     <Picker.Item label="Please select a category" value="0" />
-                    <Picker.Item label="Housemates" value="housemates" />
                     <Picker.Item label="Groceries" value="groceries" />
                     <Picker.Item label="Entertainment" value="entertainment" />
                     <Picker.Item label="Vacation" value="vacation" />
@@ -225,50 +203,18 @@ function DetailsScreen ({ navigation, route }) {
                 </Picker>
             </View>
 
-                </Animated.View>
+            <View style = {{alignItems: 'center', paddingTop: 20, paddingBottom: 500}} >
+                <TextInput
+                    style = {styles.textbox}
+                    multiline = {true}
+                    numberOfLines = {4}
+                    placeholder = "Notes and other details"
+                    onChangeText={(text) => setText({text})}
+                />
+            </View>
+        </KeyboardAwareScrollView>
+
     );
-    //<View style = {{alignItems: 'center', paddingTop: 20}} >
-            //    <TextInput
-            //        style = {styles.textbox}
-            //        multiline = {true}
-            //        numberOfLines = {4}
-            //        placeholder = "Notes and other details"
-            //        onChangeText={(text) => this.setState({text})}
-            //    />
-            //</View>
-
-    //handleKeyboardDidShow = (event) => {
-    //    const {height: windowHeight} = Dimensions.get('window');
-    //    const keyboardHeight = event.endCoordinates.height;
-    //    const currentlyFocusedField = TextInputState.currentlyFocusedField();
-    //    UIManager.measure(currentlyFocusedField, (originX, originY, width, height, pageX, pageY) => {
-    //        const fieldHeight = height;
-    //        const fieldTop = pageY;
-    //        const gap = (windowHeight - keyboardHeight) - (fieldTop + fieldHeight);
-    //        if (gap >= 0) {
-    //            return;
-    //        }
-    //        Animated.timing(
-    //            this.state.shift,
-    //            {
-    //                toValue: gap,
-    //                duration: 100,
-    //                useNativeDriver: true,
-    //            }
-    //        ).start();
-    //    });
-    //}
-
-    //handleKeyboardDidHide = () => {
-    //    Animated.timing(
-    //        this.state.shift,
-    //        {
-    //            toValue: 0,
-    //            duration: 100,
-    //            useNativeDriver: true,
-    //        }
-    //    ).start();
-    //}
 }
 
 class SpendingScreen extends React.Component {
