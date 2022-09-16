@@ -6,7 +6,7 @@ import {Picker} from '@react-native-picker/picker';
 
 import {Dimensions, Keyboard, ScrollView, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
+import {DataTable} from 'react-native-paper';
 import moment from 'moment'
 
 const MERCHANT_CHAR_LIM = 15
@@ -80,55 +80,60 @@ function HomeScreen ({ navigation }) {
     // could add loading bar
     if (isLoading) {
         return (
-              <View style={ {flex: 1, padding: 20, backgroundColor: 'lightcyan'} }>
+              <View style={ {flex: 1, padding: 20} }>
               </View>
         );
     }
 
     return (
-        // TODO: textStyle throws warning
-        <ScrollView style={styles.homeContainer}>
-            <Table borderStyle = { styles.homeTable }>
-                <Row data={ ['Unclaimed']} style={styles.head} textStyle={styles.headtext}/>
-                {unclaimedTable.map( (item, i) => {
-                   return (
-                       <Row
-                           key={i}
-                           data={item}
-                           textStyle={styles.text}
-                           flexArr={[1, 2, 1]}
-                           onPress = { () => navigation.navigate('Details', {info: unclaimed[i]} ) } />
-                   );
-                })}
-            </Table>
-            <Table borderStyle = { styles.homeTable }>
-                <Row data={ ['Joint'] } style={styles.head} textStyle={styles.headtext}/>
-                {jointTable.map( (item, i) => {
-                   return (
-                       <Row
-                           key={i}
-                           data={item}
-                           textStyle={styles.text}
-                           onPress = { () => navigation.navigate('Details', {info: joint[i]} ) } />
-                   );
-                })}
-            </Table>
-            <Table borderStyle = { styles.homeTable }>
-                <Row data={ ['Personal'] } style={styles.head} textStyle={styles.headtext}/>
-                {personalTable.map( (item, i) => {
-                   return (
-                       <Row
-                           key={i}
-                           data={item}
-                           textStyle={styles.text}
-                           onPress = { () => navigation.navigate('Details', {info: personal[i]} ) } />
-                   );
-                })}
-            </Table>
-        </ScrollView>
-      );
-}
+      <ScrollView>
+        <DataTable>
+            <DataTable.Header>
+                <DataTable.Title>Unclaimed</DataTable.Title>
+            </DataTable.Header>
 
+            {unclaimedTable.map( (item, i) => {
+                return (
+                    <DataTable.Row onPress = { () => navigation.navigate('Transaction Details', {info: unclaimed[i]} ) } >
+                         <DataTable.Cell>{item[0]}</DataTable.Cell>
+                         <DataTable.Cell>{item[1]}</DataTable.Cell>
+                         <DataTable.Cell>{item[2]}</DataTable.Cell>
+                    </DataTable.Row>
+                );
+            })}
+
+            <DataTable.Header>
+                <DataTable.Title>Joint</DataTable.Title>
+            </DataTable.Header>
+
+            {jointTable.map( (item, i) => {
+                return (
+                    <DataTable.Row onPress = { () => navigation.navigate('Transaction Details', {info: unclaimed[i]} ) } >
+                         <DataTable.Cell>{item[0]}</DataTable.Cell>
+                         <DataTable.Cell>{item[1]}</DataTable.Cell>
+                         <DataTable.Cell>{item[2]}</DataTable.Cell>
+                    </DataTable.Row>
+                );
+            })}
+
+            <DataTable.Header>
+                <DataTable.Title>Personal</DataTable.Title>
+            </DataTable.Header>
+            {personalTable.map( (item, i) => {
+                return (
+                    <DataTable.Row onPress = { () => navigation.navigate('Transaction Details', {info: unclaimed[i]} ) } >
+                         <DataTable.Cell>{item[0]}</DataTable.Cell>
+                         <DataTable.Cell>{item[1]}</DataTable.Cell>
+                         <DataTable.Cell>{item[2]}</DataTable.Cell>
+                    </DataTable.Row>
+                );
+            })}
+
+
+        </DataTable>
+      </ScrollView>
+    );
+}
 
 function DetailsScreen ({ navigation, route }) {
     const {info} = route.params;
@@ -148,23 +153,24 @@ function DetailsScreen ({ navigation, route }) {
         });
     });
 
-    const tableData = [
-           ['Merchant'],
-           ['Payment'],
-           ['Date'],
-           ['Card']
-         ]
-    tableData[0].push( info.merchant)
-    tableData[1].push(`$${info.payment}`)
-    tableData[2].push( moment(info.date).format('MMM DD YY, HH:mm') )
-    tableData[3].push(info.card_last_4)
-
     return (
-        <KeyboardAwareScrollView style={styles.detailContainer}>
-            <Table borderStyle = { {borderWidth: 1, borderColor: 'mediumturquoise'}}>
-                  <Row data ={['Transaction Details']} style={styles.head} textStyle={styles.headtext} />
-                  <Rows data = {tableData} textStyle={styles.text} />
-            </Table>
+        <KeyboardAwareScrollView>
+            <DataTable.Row>
+                 <DataTable.Cell>Merchant</DataTable.Cell>
+                 <DataTable.Cell>{info.merchant}</DataTable.Cell>
+            </DataTable.Row>
+            <DataTable.Row>
+                 <DataTable.Cell>Payment</DataTable.Cell>
+                 <DataTable.Cell>{`$${info.payment}`}</DataTable.Cell>
+            </DataTable.Row>
+            <DataTable.Row>
+                 <DataTable.Cell>Date</DataTable.Cell>
+                 <DataTable.Cell>{ moment(info.date).format('MMM DD YY, HH:mm') }</DataTable.Cell>
+            </DataTable.Row>
+            <DataTable.Row>
+                 <DataTable.Cell>Card</DataTable.Cell>
+                 <DataTable.Cell>{info.card_last_4}</DataTable.Cell>
+            </DataTable.Row>
 
             <View style = {{alignItems: 'center', paddingTop: 0.05*HEIGHT}}>
                 <Picker
@@ -257,7 +263,7 @@ export default function App() {
                     component={HomeTabs}
                 />
                 <Stack.Screen
-                    name="Details"
+                    name="Transaction Details"
                     component={DetailsScreen}
                 />
             </Stack.Navigator>
