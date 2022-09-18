@@ -8,6 +8,7 @@ import {Dimensions, Keyboard, ScrollView, StyleSheet, Text, TextInput, UIManager
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {DataTable} from 'react-native-paper';
 import moment from 'moment'
+import {BarChart} from 'react-native-chart-kit'
 
 const MERCHANT_CHAR_LIM = 15
 const NUM_TRANSACTIONS = 15
@@ -108,7 +109,7 @@ function HomeScreen ({ navigation }) {
 
             {jointTable.map( (item, i) => {
                 return (
-                    <DataTable.Row onPress = { () => navigation.navigate('Transaction Details', {info: unclaimed[i]} ) } >
+                    <DataTable.Row onPress = { () => navigation.navigate('Transaction Details', {info: joint[i]} ) } >
                          <DataTable.Cell>{item[0]}</DataTable.Cell>
                          <DataTable.Cell>{item[1]}</DataTable.Cell>
                          <DataTable.Cell>{item[2]}</DataTable.Cell>
@@ -121,7 +122,7 @@ function HomeScreen ({ navigation }) {
             </DataTable.Header>
             {personalTable.map( (item, i) => {
                 return (
-                    <DataTable.Row onPress = { () => navigation.navigate('Transaction Details', {info: unclaimed[i]} ) } >
+                    <DataTable.Row onPress = { () => navigation.navigate('Transaction Details', {info: personal[i]} ) } >
                          <DataTable.Cell>{item[0]}</DataTable.Cell>
                          <DataTable.Cell>{item[1]}</DataTable.Cell>
                          <DataTable.Cell>{item[2]}</DataTable.Cell>
@@ -223,16 +224,30 @@ function DetailsScreen ({ navigation, route }) {
     );
 }
 
-class SpendingScreen extends React.Component {
-    render() {
-        return (
-            <View>
-                <Text> Spending information here! </Text>
-            </View>
-        );
-    }
-}
+// an example bar dataset
+const barData = {
+    labels: ["Groceries", "Entertainment", "Vacation", "Auto", "Misc", "Charity"],
+    datasets: [
+          {
+                  data: [20, 45, 28, 80, 99, 43]
+                }
+        ]
+};
 
+function SpendingScreen({navigation, route}) {
+
+  return (
+    <View>
+      <BarChart
+        width={WIDTH}
+        height={0.5*HEIGHT}
+        data={barData}
+        yAxisLabel="$"
+        chartConfig={styles.chartStyle}
+      />
+    </View>
+  );
+}
 
 const Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
@@ -277,6 +292,24 @@ const styles = StyleSheet.create({
         backgroundColor: 'lightcyan',
         paddingTop: 22,
     },
+  chartStyle: {
+    backgroundGradientFrom: "#1E2923",
+    decimalPlaces: 2, // optional, defaults to 2dp
+    color: (opacity = 1) => "#FF5500",
+    labelColor: (opacity = 1) => "#A0A0A0",
+    linejoinType: "round",
+
+    scrollableDotFill: "#fff",
+    scrollableDotRadius: 6,
+    scrollableDotStrokeColor: "#FF5500",
+    scrollableDotStrokeWidth: 3,
+
+    scrollableInfoViewStyle: {
+                          justifyContent: "center",
+                          alignContent: "center",
+                          borderRadius: 2
+                        }
+  },
     head: {height: 40, backgroundColor: 'mediumturquoise'},
     headtext: {margin: 6, fontSize: 20, fontWeight: 'bold'},
     homeContainer: {
