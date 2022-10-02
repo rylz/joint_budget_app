@@ -12,6 +12,7 @@
     "@react-navigation/native": "^6.0.12",
     "@react-navigation/stack": "^6.2.3",
     "expo": "^46.0.0",
+    "get-graphql-schema": "^2.1.2",
     "moment": "^2.23.0",
     "react": "18.0.0",
     "react-native": "0.69.5",
@@ -24,10 +25,14 @@
     "react-native-screens": "~3.15.0",
     "react-native-svg": "12.3.0",
     "react-native-tab-view": "^3.1.1",
-    "react-navigation": "^4.3.7"
+    "react-navigation": "^4.3.7",
+    "react-relay": "^14.1.0",
+    "relay-runtime": "^14.1.0"
   },
   "devDependencies": {
-    "babel-preset-expo": "~9.2.0"
+    "babel-plugin-relay": "^14.1.0",
+    "babel-preset-expo": "~9.2.0",
+    "relay-compiler": "^14.1.0"
   },
   "private": true
 }
